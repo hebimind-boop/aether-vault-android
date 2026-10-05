@@ -46,7 +46,7 @@ jobs:
 
       - name: Prebuild Android Native Project
         run: |
-          npx expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean --no-install
 
       - name: Make Gradlew Executable
         run: |
