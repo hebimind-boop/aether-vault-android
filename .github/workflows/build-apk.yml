@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build-apk:
-    name: Build Standalone Android APKs
+    name: Build Standalone Offline Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -48,39 +48,32 @@ jobs:
         run: |
           npx expo prebuild --platform android --clean --no-install
 
-      - name: Apply Native React Native 0.74 Patches & Configure Offline Bundle
+      - name: Apply Native React Native 0.74 Patches
         run: |
           node scripts/patch-svg.js
-          node scripts/configure-offline-bundle.js
+
+      - name: Generate Offline Standalone JavaScript Bundle
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
       - name: Make Gradlew Executable
         run: |
           chmod +x android/gradlew
 
-      - name: Assemble Release and Debug APKs with Embedded JS Bundle
+      - name: Assemble Standalone Debug APK
         run: |
           cd android
-          ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Verify Generated APKs
+      - name: Verify Generated Standalone APK
         run: |
-          echo "=== Release APKs ==="
-          ls -lh android/app/build/outputs/apk/release/ || true
-          echo "=== Debug APKs ==="
-          ls -lh android/app/build/outputs/apk/debug/ || true
+          ls -lh android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload Standalone Release APK (Recommended for Devices)
+      - name: Upload Standalone Offline Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: aether-vault-release-apk
-          path: android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Upload Debug APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aether-vault-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: aether-vault-standalone-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
