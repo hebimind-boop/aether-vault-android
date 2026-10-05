@@ -48,6 +48,10 @@ jobs:
         run: |
           npx expo prebuild --platform android --clean --no-install
 
+      - name: Apply Native React Native 0.74 Patches
+        run: |
+          node scripts/patch-svg.js
+
       - name: Make Gradlew Executable
         run: |
           chmod +x android/gradlew
